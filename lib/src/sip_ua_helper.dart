@@ -458,6 +458,30 @@ class Call {
     _session.answer(options);
   }
 
+  void attendedRefer(Call referToCall) {
+    assert(_session != null, 'ERROR(refer): rtc session is invalid!');
+
+    String callId = referToCall.session.id!;
+    callId = callId.substring(
+      0,
+      callId.length - referToCall.session.from_tag!.length,
+    );
+
+    ReferSubscriber refer = _session.refer(referToCall.remote_identity, {
+      'replaces': {
+        'call_id': callId,
+        'from_tag': referToCall.session.from_tag!,
+        'to_tag': referToCall.session.to_tag!,
+      },
+    })!;
+    refer.on(EventReferTrying(), (EventReferTrying data) {});
+    refer.on(EventReferProgress(), (EventReferProgress data) {});
+    refer.on(EventReferAccepted(), (EventReferAccepted data) {
+      _session.terminate();
+    });
+    refer.on(EventReferFailed(), (EventReferFailed data) {});
+  }
+
   void refer(String target) {
     assert(_session != null, 'ERROR(refer): rtc session is invalid!');
     ReferSubscriber refer = _session.refer(target)!;
