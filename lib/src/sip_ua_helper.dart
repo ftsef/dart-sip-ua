@@ -440,6 +440,18 @@ enum CallStateEnum {
   CALL_INITIATION
 }
 
+class _Replaces {
+  _Replaces({
+    required this.call_id,
+    required this.from_tag,
+    required this.to_tag,
+  });
+
+  final String call_id;
+  final String to_tag;
+  final String from_tag;
+}
+
 class Call {
   Call(this._id, this._session, this.state);
   final String? _id;
@@ -467,13 +479,16 @@ class Call {
       callId.length - referToCall.session.from_tag!.length,
     );
 
-    ReferSubscriber refer = _session.refer(referToCall.remote_identity, {
-      'replaces': {
-        'call_id': callId,
-        'from_tag': referToCall.session.from_tag!,
-        'to_tag': referToCall.session.to_tag!,
+    ReferSubscriber refer = _session.refer(
+      referToCall.remote_identity,
+      <String, dynamic>{
+        'replaces': _Replaces(
+          call_id: callId,
+          from_tag: referToCall.session.from_tag!,
+          to_tag: referToCall.session.to_tag!,
+        ),
       },
-    })!;
+    )!;
     refer.on(EventReferTrying(), (EventReferTrying data) {});
     refer.on(EventReferProgress(), (EventReferProgress data) {});
     refer.on(EventReferAccepted(), (EventReferAccepted data) {
