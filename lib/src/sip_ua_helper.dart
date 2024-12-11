@@ -125,6 +125,7 @@ class SIPUAHelper extends EventManager {
         webSocketSettings: uaSettings.webSocketSettings);
     _settings.sockets = <WebSocketInterface>[socket];
     _settings.uri = uaSettings.uri;
+    _settings.contact_uri = uaSettings.contact_uri;
     _settings.sip_message_delay = uaSettings.sip_message_delay;
     _settings.realm = uaSettings.realm;
     _settings.password = uaSettings.password;
@@ -741,6 +742,7 @@ class UaSettings {
   /// `User Agent` field for sip message.
   String? userAgent;
   String? uri;
+  String? contact_uri;
   String? realm;
   String? authorizationUser;
   String? password;
