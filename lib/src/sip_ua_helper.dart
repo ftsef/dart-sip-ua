@@ -471,31 +471,63 @@ class Call {
     _session.answer(options);
   }
 
-  void attendedRefer(Call referToCall) {
-    assert(_session != null, 'ERROR(refer): rtc session is invalid!');
+  Future<bool> attendedRefer(
+    Call callToTransferTo,
+  ) async {
+    final StreamController<bool> streamController = StreamController<bool>();
 
-    String callId = referToCall.session.id!;
+    session.hold();
+
+    // the call id has the from tag appended to it so we need to remove
+    String callId = callToTransferTo.session.id!;
     callId = callId.substring(
       0,
-      callId.length - referToCall.session.from_tag!.length,
+      callId.length - callToTransferTo.session.from_tag!.length,
     );
 
-    ReferSubscriber refer = _session.refer(
-      referToCall.remote_identity,
-      <String, dynamic>{
-        'replaces': _Replaces(
-          call_id: callId,
-          from_tag: referToCall.session.from_tag!,
-          to_tag: referToCall.session.to_tag!,
-        ),
-      },
-    )!;
+    // ignore: always_specify_types
+    ReferSubscriber refer = session.refer(callToTransferTo.remote_identity, {
+      'replaces': _Replaces(
+        call_id: callId,
+        from_tag: callToTransferTo.session.from_tag!,
+        to_tag: callToTransferTo.session.to_tag!,
+      ),
+    })!;
+
     refer.on(EventReferTrying(), (EventReferTrying data) {});
     refer.on(EventReferProgress(), (EventReferProgress data) {});
     refer.on(EventReferAccepted(), (EventReferAccepted data) {
-      _session.terminate();
+      session.terminate();
+      streamController.sink.add(true);
     });
-    refer.on(EventReferFailed(), (EventReferFailed data) {});
+    refer.on(EventReferFailed(), (EventReferFailed data) {
+      streamController.sink.add(false);
+    });
+
+    final bool ok = await streamController.stream.first;
+    await streamController.close();
+
+    return ok;
+  }
+
+  Future<bool> blindTransfer(String target) async {
+    final StreamController<bool> streamController = StreamController<bool>();
+
+    ReferSubscriber refer = session.refer(target)!;
+    refer.on(EventReferTrying(), (EventReferTrying data) {});
+    refer.on(EventReferProgress(), (EventReferProgress data) {});
+    refer.on(EventReferAccepted(), (EventReferAccepted data) {
+      session.terminate();
+      streamController.sink.add(true);
+    });
+    refer.on(EventReferFailed(), (EventReferFailed data) {
+      streamController.sink.add(false);
+    });
+
+    final bool ok = await streamController.stream.first;
+    await streamController.close();
+
+    return ok;
   }
 
   void refer(String target) {
