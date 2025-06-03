@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
-import 'enum_helper.dart';
 import 'stack_trace_nj.dart';
 
 Logger logger = Log();
@@ -28,7 +27,7 @@ class MyLogPrinter extends LogPrinter {
   MyLogPrinter(this.currentWorkingDirectory);
 
   static final Map<Level, AnsiColor> levelColors = <Level, AnsiColor>{
-    Level.verbose: AnsiColor.fg(AnsiColor.grey(0.5)),
+    Level.trace: AnsiColor.fg(AnsiColor.grey(0.5)),
     Level.debug: AnsiColor.none(),
     Level.info: AnsiColor.fg(12),
     Level.warning: AnsiColor.fg(208),
@@ -41,8 +40,7 @@ class MyLogPrinter extends LogPrinter {
 
   @override
   List<String> log(LogEvent event) {
-    if (EnumHelper.getIndexOf(Level.values, Log._loggingLevel) >
-        EnumHelper.getIndexOf(Level.values, event.level)) {
+    if (Log._loggingLevel.index > event.level.index) {
       // don't log events where the log level is set higher
       return <String>[];
     }
@@ -130,7 +128,7 @@ class AnsiColor {
 
   String call(String msg) {
     if (color) {
-      return '$this$msg$ansiDefault';
+      return '$msg$ansiDefault';
     } else {
       return msg;
     }
