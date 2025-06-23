@@ -155,6 +155,9 @@ class Checks {
           dst!.contact_uri = uri;
         }
       }
+      if (contact_uri is URI) {
+        dst!.contact_uri = src.contact_uri;
+      }
     },
     'display_name': (Settings src, Settings? dst) {
       String? display_name = src.display_name;
